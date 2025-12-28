@@ -64,7 +64,7 @@ init_db()
 def home():
     if "user_id" not in session:
         return redirect("/reg_log")
-    return render_template("myTodo.html")
+    return render_template("mytodo.html")
 
 
 @app.route("/reg_log")
@@ -254,3 +254,4 @@ def show_task():
 def logout():
     session.pop("user_id", None)
     return jsonify({"success": True, "redirect": "/login_page"})
+
