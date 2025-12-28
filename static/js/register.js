@@ -1,3 +1,18 @@
+login = document.querySelector(".login-btn")
+login.addEventListener("click",()=>callAPI("/api/login"))
+let msg = document.querySelector(".none")
+let msg1 = document.querySelector("#msg1")
+
+function callAPI(url){
+    fetch(url,{method:"POST"})
+    .then(res => res.json())
+    .then(data=>{
+        if(data.success){
+            window.location.href = data.redirect;
+        }
+    })
+    .catch(err=>console.error(err))
+}
 let msg = document.querySelector(".none")
 let msg1 = document.querySelector("#msg1")
 
@@ -37,5 +52,6 @@ signup.addEventListener("click",async()=>{
 
 
 })
+
 
 
