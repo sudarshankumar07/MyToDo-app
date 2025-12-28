@@ -44,14 +44,13 @@ signup.addEventListener("click",async()=>{
     if(data.success){
         window.location.href="/login_page"
     }else{
-        msg.classList.add("msg")
-        msg.classList.remove("none")
-        msg1.classList.remove("msg1")
         msg1.classList.add("none")
+        msg1.classList.remove("msg1")
     }
 
 
 })
+
 
 
 
