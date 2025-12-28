@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Todo</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/mytodo.css') }}">
+</head>
+
+<body class="main-body">
+
+  <!-- SIDEBAR / NAV -->
+  <div class="sidebar">
+    <h2>MY TO DO List</h2>
+
+    <div class="main">
+      <div class="logout">Logout</div>
+      <div>
+        <p class="name"></p>
+        <p class="email"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD TASK SECTION -->
+  <div class="addTask">
+    <h1 class="heading">ADD YOUR TO DO</h1>
+
+    <div class="input-div">
+      <div class="title">
+        <label>Add a Title:</label><br>
+        <input type="text" id="title" placeholder="Input A title to your ToDo">
+      </div>
+
+      <div class="Task">
+        <label>Add Task:</label><br>
+        <input type="text" id="task" placeholder="Input task">
+      </div>
+
+      <div class="desc">
+        <label>Description:</label><br>
+        <textarea id="desc" placeholder="Add description about Task"></textarea>
+      </div>
+
+      <div class="submit-task">
+        <button class="add-task-btn">Add Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TODO LIST -->
+  <div class="to-do-list-container">
+    <div class="todo-list"></div>
+  </div>
+
+  <!-- JS -->
+  <script src="{{ url_for('static', filename='js/myTOdo.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/login.css')}}">
+    <title>Document</title>
+</head>
+<body>
+    <div class="main">
+        <div class="welcome">
+            <p>WELCOME</p>
+            <p>Keep Connected with us please login with your personal info</p>
+            <div class="sign-btn">
+                Sign In
+            </div>
+            </div>
+        <div class="login">
+            <p>Login Account</p>
+            <div class="login_detail">
+            <input type="email" id="email" class="email" placeholder="Enter Email" >
+            <input type="password" id="pass" class="pass" placeholder="Enter Password" >
+            </div>
+            <div class="login-btn">
+                Login
+            </div>
+        </div>
+    </div>
+    <script src="{{url_for('static', filename='js/login.js')}}"></script>
+</body>
+</html>

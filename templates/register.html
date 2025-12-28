@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/register.css')}}">
+    <title>Document</title>
+</head>
+<body>
+    <div class="main">
+        <div class="welcome">
+            <p>WELCOME</p>
+            <p>Keep Connected with us please Sign-up with your personal info</p>
+            <div class="login-btn">
+                Login
+            </div>
+            </div>
+        <div class="signin">
+            <p>Create Account</p>
+            <div class="signin_detail">
+            <input type="text" id="name" class="name" placeholder="Enter Name" required>
+            <input type="email" id="email" class="email" placeholder="Enter Email" required>
+            <input type="password" id="pass" class="pass" placeholder="Enter Password" required>
+            </div>
+            <div class="none">
+                <p>User Already Exists with this Email</p>
+            </div>
+            <div class="none" id="msg1">
+                <p>All Fields Requiered</p>
+            </div>
+            <div class="sign-btn" tabindex="0">
+                Sign In
+            </div>
+        </div>
+    </div>
+    <script src="{{url_for('static', filename='js/register.js')}}"></script>
+</body>
+</html>
