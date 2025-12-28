@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{url_for('static', filename='css/login.css')}}">
-    <title>Document</title>
+    <title>Login</title>
 </head>
 <body>
     <div class="main">
         <div class="welcome">
             <p>WELCOME</p>
             <p>Keep Connected with us please login with your personal info</p>
-            <div class="sign-btn">
+            <div class="sign-btn" onclick="window.location.href='/register_page'">
                 Sign In
             </div>
             </div>
@@ -28,4 +28,5 @@
     </div>
     <script src="{{url_for('static', filename='js/login.js')}}"></script>
 </body>
+
 </html>
