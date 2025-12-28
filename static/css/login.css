@@ -42,13 +42,18 @@ input {
   padding-left: 6px;
 }
 
-.login-btn {
+.login-btn,.sign-btn {
   margin-top: 1rem;
   padding: 10px;
   background: linear-gradient(white,wheat);
   color: #00332a;
   border-radius: 15px;
   font-weight: 700;
+}
+.sign-btn{
+  background: linear-gradient(135deg,#004d40,#00796b);
+  color: white;
+  
 }
 
 @media (min-width: 768px) {
@@ -61,3 +66,4 @@ input {
     width: 50%;
   }
 }
+
