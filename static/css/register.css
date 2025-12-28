@@ -42,7 +42,7 @@ input {
   padding-left: 6px;
 }
 
-.sign-btn.login-btn {
+.sign-btn,.login-btn {
   margin-top: 1rem;
   padding: 10px;
   background: linear-gradient(white,wheat);
@@ -68,5 +68,6 @@ input {
 .none{
   display:none;
 }
+
 
 
