@@ -164,7 +164,7 @@ def check_session():
 def todo():
     if "user_id" not in session:
         return redirect(url_for("login_page"))
-    return render_template("myTodo.html")
+    return render_template("mytodo.html")
 
 
 # ---------------- PROFILE ----------------
@@ -253,6 +253,7 @@ def show_task():
 def logout():
     session.pop("user_id", None)
     return jsonify({"success": True, "redirect": "/login_page"})
+
 
 
 
