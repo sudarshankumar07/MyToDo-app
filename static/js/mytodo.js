@@ -106,3 +106,50 @@ function callAPI(url){
     })
     .catch(err=>console.error(err))
 }
+
+todoList.addEventListener("click",async (e)=>{
+  const btn = e.target.closest(".task-update-btn");
+  if(!btn) return;
+    const title = document.querySelector("#title").value.trim();
+    const task = document.querySelector("#task").value.trim();
+    const description = document.querySelector("#desc").value.trim();
+    const taskId = btn.dataset.taskId;
+
+    const payload = {}
+    if(title !== "") payload.title = title;
+    if(task !== "") payload.task = task;
+    if(description !=="") payload.description = description;
+    if(Object.keys(payload).length===0){
+      alert("Enter atleast one field to update")
+      return
+    }
+    console.log(taskId)
+    console.log(payload)
+    
+
+    try{
+      const res = await fetch(`/update-task/${taskId}`, {
+
+        method: "PATCH",
+        headers : {"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+
+      });
+      const data = await res.json();
+      if (data.success){
+       clearInputs()
+       await loadTasks();
+
+      }
+      else{
+        alert(data.error)
+        return;
+      }
+      
+    }
+    catch(err){
+      console.log(err)
+      alert("server error")
+    
+  }
+})
