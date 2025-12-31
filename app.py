@@ -7,16 +7,15 @@ import os
 # ---------------- APP SETUP ----------------
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
+
 app.config.update(
     SESSION_COOKIE_SAMESITE="None",
     SESSION_COOKIE_SECURE=True
 )
 
-
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL not set")
-
 
 # ---------------- DATABASE ----------------
 def get_db_connection():
@@ -25,12 +24,10 @@ def get_db_connection():
         cursor_factory=RealDictCursor
     )
 
-
 def init_db():
     db = get_db_connection()
     cur = db.cursor()
 
-    # USERS TABLE
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -40,7 +37,6 @@ def init_db():
         );
     """)
 
-    # TODO TABLE
     cur.execute("""
         CREATE TABLE IF NOT EXISTS todo (
             id SERIAL PRIMARY KEY,
@@ -56,26 +52,29 @@ def init_db():
     cur.close()
     db.close()
 
-
 init_db()
 
 # ---------------- PAGES ----------------
+
 @app.route("/")
 def home():
+    # 🔥 FIX: FIRST-TIME / LOGGED-OUT → CHOICE PAGE
     if "user_id" not in session:
-        return redirect(url_for("login_page"))
+        return redirect("/reg_log")
     return render_template("mytodo.html")
 
+@app.route("/reg_log")
+def reg_log():
+    # choice page
+    return render_template("index.html")
 
 @app.route("/login_page")
 def login_page():
     return render_template("login.html")
 
-
 @app.route("/register_page")
 def register_page():
     return render_template("register.html")
-
 
 # ---------------- AUTH ----------------
 @app.route("/signup", methods=["POST"])
@@ -101,20 +100,15 @@ def signup():
             (name, email, hashed)
         )
         db.commit()
-        return jsonify({"success": True})
+        return jsonify({"success": True, "redirect": "/login_page"})
 
     except psycopg2.IntegrityError:
         db.rollback()
         return jsonify({"error": "Email already exists"}), 409
 
-    except psycopg2.Error as e:
-        db.rollback()
-        return jsonify({"error": str(e)}), 500
-
     finally:
         cur.close()
         db.close()
-
 
 @app.route("/user-login", methods=["POST"])
 def user_login():
@@ -125,31 +119,35 @@ def user_login():
     email = data.get("email")
     password = data.get("password")
 
-    try:
-        db = get_db_connection()
-        cur = db.cursor()
-        cur.execute(
-            "SELECT id, password FROM users WHERE email=%s",
-            (email,)
-        )
-        user = cur.fetchone()
-
-    finally:
-        cur.close()
-        db.close()
+    db = get_db_connection()
+    cur = db.cursor()
+    cur.execute(
+        "SELECT id, password FROM users WHERE email=%s",
+        (email,)
+    )
+    user = cur.fetchone()
+    cur.close()
+    db.close()
 
     if not user or not check_password_hash(user["password"], password):
         return jsonify({"error": "Invalid credentials"}), 401
 
     session["user_id"] = user["id"]
-    return jsonify({"success": True})
 
+    # 🔥 FIX: LOGIN → TODO PAGE
+    return jsonify({
+        "success": True,
+        "redirect": "/"
+    })
 
 @app.route("/api/logout", methods=["POST"])
 def logout():
     session.clear()
-    return jsonify({"success": True})
-
+    # 🔥 FIX: LOGOUT → CHOICE PAGE
+    return jsonify({
+        "success": True,
+        "redirect": "/reg_log"
+    })
 
 # ---------------- PROFILE ----------------
 @app.route("/api/profile")
@@ -169,8 +167,7 @@ def profile():
 
     return jsonify(user)
 
-
-# ---------------- ADD TASK ----------------
+# ---------------- TODO APIs ----------------
 @app.route("/api/add_task", methods=["POST"])
 def add_task():
     if "user_id" not in session:
@@ -187,29 +184,21 @@ def add_task():
     if not title or not task:
         return jsonify({"error": "Missing fields"}), 400
 
-    try:
-        db = get_db_connection()
-        cur = db.cursor()
-        cur.execute(
-            """
-            INSERT INTO todo (user_id,title,task,description)
-            VALUES (%s,%s,%s,%s)
-            """,
-            (session["user_id"], title, task, description)
-        )
-        db.commit()
-        return jsonify({"success": True}),201
+    db = get_db_connection()
+    cur = db.cursor()
+    cur.execute(
+        """
+        INSERT INTO todo (user_id,title,task,description)
+        VALUES (%s,%s,%s,%s)
+        """,
+        (session["user_id"], title, task, description)
+    )
+    db.commit()
+    cur.close()
+    db.close()
 
-    except psycopg2.Error as e:
-        db.rollback()
-        return jsonify({"error": str(e)}), 500
+    return jsonify({"success": True}), 201
 
-    finally:
-        cur.close()
-        db.close()
-
-
-# ---------------- SHOW TASKS ----------------
 @app.route("/api/show_task")
 def show_task():
     if "user_id" not in session:
@@ -230,10 +219,8 @@ def show_task():
     cur.close()
     db.close()
 
-    return jsonify({"tasks": tasks}),200
+    return jsonify({"tasks": tasks}), 200
 
-
-# ---------------- DELETE TASK ----------------
 @app.route("/delete-task", methods=["POST"])
 def delete_task():
     if "user_id" not in session:
@@ -252,14 +239,11 @@ def delete_task():
         (task_id, session["user_id"])
     )
     db.commit()
-    deleted = cur.rowcount
     cur.close()
     db.close()
 
-    return jsonify({"success": deleted == 1}),200
+    return jsonify({"success": True}), 200
 
-
-# ---------------- UPDATE TASK ----------------
 @app.route("/update-task/<int:task_id>", methods=["PATCH"])
 def update_task(task_id):
     if "user_id" not in session:
@@ -293,19 +277,13 @@ def update_task(task_id):
         tuple(values)
     )
     db.commit()
-    updated = cur.rowcount
     cur.close()
     db.close()
 
-    if updated == 0:
-        return jsonify({"error": "Task not found"}), 404
-
-    return jsonify({"success": True}),200
-
+    return jsonify({"success": True}), 200
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
 
