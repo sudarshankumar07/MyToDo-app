@@ -22,11 +22,14 @@ addBtn.addEventListener("click", async () => {
     body: JSON.stringify({ title, task, description: desc })
   });
 
- if (!res.ok) {
+ if (res.ok) {
+     clearInputs();
+      loadTasks();
+     
+    }else{
       throw new Error(data.error || "Failed to add task");
-    };
-  clearInputs();
-  loadTasks();
+    }
+  
 });
 
 // ---------- LOAD ----------
@@ -97,6 +100,7 @@ document.querySelector(".logout").addEventListener("click", async () => {
 });
 
 loadTasks();
+
 
 
 
