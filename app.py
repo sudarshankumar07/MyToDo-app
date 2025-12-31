@@ -166,4 +166,139 @@ def profile():
 
 
 # ---------------- ADD TASK ----------------
-@app.route("/api/add
+@app.route("/api/add_task", methods=["POST"])
+def add_task():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    title = data.get("title")
+    task = data.get("task")
+    description = data.get("description", "")
+
+    if not title or not task:
+        return jsonify({"error": "Missing fields"}), 400
+
+    try:
+        db = get_db_connection()
+        cur = db.cursor()
+        cur.execute(
+            """
+            INSERT INTO todo (user_id,title,task,description)
+            VALUES (%s,%s,%s,%s)
+            """,
+            (session["user_id"], title, task, description)
+        )
+        db.commit()
+        return jsonify({"success": True})
+
+    except psycopg2.Error as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cur.close()
+        db.close()
+
+
+# ---------------- SHOW TASKS ----------------
+@app.route("/api/show_task")
+def show_task():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    db = get_db_connection()
+    cur = db.cursor()
+    cur.execute(
+        """
+        SELECT id, title, task, description, created_at
+        FROM todo
+        WHERE user_id=%s
+        ORDER BY created_at DESC
+        """,
+        (session["user_id"],)
+    )
+    tasks = cur.fetchall()
+    cur.close()
+    db.close()
+
+    return jsonify({"tasks": tasks})
+
+
+# ---------------- DELETE TASK ----------------
+@app.route("/delete-task", methods=["POST"])
+def delete_task():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(silent=True)
+    task_id = data.get("task_id") if data else None
+
+    if not task_id:
+        return jsonify({"error": "task_id required"}), 400
+
+    db = get_db_connection()
+    cur = db.cursor()
+    cur.execute(
+        "DELETE FROM todo WHERE id=%s AND user_id=%s",
+        (task_id, session["user_id"])
+    )
+    db.commit()
+    deleted = cur.rowcount
+    cur.close()
+    db.close()
+
+    return jsonify({"success": deleted == 1})
+
+
+# ---------------- UPDATE TASK ----------------
+@app.route("/update-task/<int:task_id>", methods=["PATCH"])
+def update_task(task_id):
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    fields = []
+    values = []
+
+    for key in ("title", "task", "description"):
+        if key in data:
+            fields.append(f"{key}=%s")
+            values.append(data[key])
+
+    if not fields:
+        return jsonify({"error": "Nothing to update"}), 400
+
+    values.extend([task_id, session["user_id"]])
+
+    db = get_db_connection()
+    cur = db.cursor()
+    cur.execute(
+        f"""
+        UPDATE todo
+        SET {", ".join(fields)}
+        WHERE id=%s AND user_id=%s
+        """,
+        tuple(values)
+    )
+    db.commit()
+    updated = cur.rowcount
+    cur.close()
+    db.close()
+
+    if updated == 0:
+        return jsonify({"error": "Task not found"}), 404
+
+    return jsonify({"success": True})
+
+
+# ---------------- RUN ----------------
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
