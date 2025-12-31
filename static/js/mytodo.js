@@ -40,6 +40,7 @@ function renderTasks(tasks) {
         <h4>${t.title}</h4>
         <p>${t.task}</p>
         <small>${t.description || ""}</small>
+        <br>
         <button class="task-del-btn" data-id="${t.id}">Delete</button>
         <button class="task-update-btn" data-id="${t.id}">Update</button>
       </div>`;
@@ -86,3 +87,4 @@ document.querySelector(".logout").addEventListener("click", async () => {
 });
 
 loadTasks();
+
