@@ -1,15 +1,15 @@
-register = document.querySelector(".sign-btn")
-register.addEventListener("click",()=>callAPI("/api/register"))
-function callAPI(url){
-    fetch(url,{method:"POST"})
-    .then(res => res.json())
-    .then(data=>{
-        if(data.success){
-            window.location.href = data.redirect;
-        }
-    })
-    .catch(err=>console.error(err))
-}
+// register = document.querySelector(".sign-btn")
+// register.addEventListener("click",()=>callAPI("/api/register"))
+// function callAPI(url){
+//     fetch(url,{method:"POST"})
+//     .then(res => res.json())
+//     .then(data=>{
+//         if(data.success){
+//             window.location.href = data.redirect;
+//         }
+//     })
+//     .catch(err=>console.error(err))
+// }
 login = document.querySelector(".login-btn")
 
 login.addEventListener("click",async()=>{
@@ -41,5 +41,6 @@ login.addEventListener("click",async()=>{
     })
 
 })
+
 
 
