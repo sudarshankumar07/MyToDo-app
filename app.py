@@ -58,7 +58,6 @@ def init_db():
 
 init_db()
 
-
 # ---------------- HOME ----------------
 @app.route("/")
 def home():
@@ -86,7 +85,9 @@ def register_page():
 # ---------------- SIGNUP ----------------
 @app.route("/signup", methods=["POST"])
 def signup():
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"success": False, "message": "Invalid JSON"}), 400
 
     name = data.get("name")
     email = data.get("email")
@@ -117,10 +118,14 @@ def signup():
         cursor.close()
         db.close()
 
+
 # ---------------- LOGIN ----------------
 @app.route("/user-login", methods=["POST"])
 def user_login():
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
     email = data.get("email")
     password = data.get("password")
 
@@ -148,15 +153,6 @@ def user_login():
     finally:
         cursor.close()
         db.close()
-
-
-# ---------------- SESSION CHECK ----------------
-@app.route("/api/session")
-def check_session():
-    if "user_id" not in session:
-        return jsonify({"logged_in": False}), 401
-
-    return jsonify({"logged_in": True, "user_id": session["user_id"]})
 
 
 # ---------------- TODO PAGE ----------------
@@ -255,43 +251,57 @@ def logout():
     return jsonify({"success": True, "redirect": "/login_page"})
 
 
+# ---------------- DELETE TASK ----------------
 @app.route("/delete-task", methods=["POST"])
-def deleteTask():
-    user_id = session.get('user_id')
-    data = request.get_json()
+def delete_task():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"success": False}), 401
+
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"success": False}), 400
+
     task_id = data.get("task_id")
-    if not user_id or not task_id:
-        return jsonify({"success":False}), 401
+    if not task_id:
+        return jsonify({"success": False}), 400
+
     db = get_db_connection()
     cursor = db.cursor()
+
     try:
         cursor.execute(
-                "DELETE FROM todo WHERE id = %s AND user_id = %s",
-                (task_id,user_id)
-            )
+            "DELETE FROM todo WHERE id = %s AND user_id = %s",
+            (task_id, user_id)
+        )
         db.commit()
-        deleted = cursor.rowcount
-        return jsonify({"success": deleted == 1}),200
-    except Exception as e:
+        return jsonify({"success": cursor.rowcount == 1})
+    except Exception:
         db.rollback()
-        return jsonify({"success": False , "error": (e)}),500
+        return jsonify({"success": False}), 500
     finally:
         cursor.close()
         db.close()
 
-@app.route("/update-task/<int:taskId>", methods = ["PATCH"])
-def updateTask(taskId):
-    data = request.get_json()
-    task_id = taskId
-    
-    if not task_id:
-        return jsonify({"error":"task_id is required"}),400
+
+# ---------------- UPDATE TASK ----------------
+@app.route("/update-task/<int:taskId>", methods=["PATCH"])
+def update_task(taskId):
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
     fields = []
     values = []
+
     if "title" in data:
         fields.append("title = %s")
         values.append(data["title"])
-    
+
     if "task" in data:
         fields.append("task = %s")
         values.append(data["task"])
@@ -299,32 +309,32 @@ def updateTask(taskId):
     if "description" in data:
         fields.append("description = %s")
         values.append(data["description"])
+
     if not fields:
-        return jsonify({"error":"no fields to update"}),400
-    query = f""" 
-            UPDATE todo 
-            SET {', '.join(fields)}
-            WHERE ID = %s
-            """
-    values.append(task_id)
+        return jsonify({"error": "No fields to update"}), 400
+
+    query = f"""
+        UPDATE todo
+        SET {', '.join(fields)}
+        WHERE id = %s AND user_id = %s
+    """
+
+    values.extend([taskId, user_id])
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
     try:
-        db = get_db_connection()
-        cursor = db.cursor()
         cursor.execute(query, tuple(values))
         db.commit()
+
         if cursor.rowcount == 0:
-            return jsonify({"error":"Task not found"}),404
-        return jsonify({"success":True, "message":"Task Updated successfully" })   
+            return jsonify({"error": "Task not found"}), 404
+
+        return jsonify({"success": True})
     except Exception as e:
         db.rollback()
-        return jsonify({"error":str(e)}),500
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
-        db.close()  
-
-
-
-
-
-
-
+        db.close()
