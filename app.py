@@ -41,10 +41,13 @@ def init_db():
             task TEXT NOT NULL,
             description TEXT,
         )
-        ALTER TABLE todo
-        ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+        
 
     """)
+    cur.execute("""
+        ALTER TABLE todo
+        ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+        """)
 
     db.commit()
     cur.close()
@@ -272,4 +275,5 @@ def update_task(task_id):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
 
