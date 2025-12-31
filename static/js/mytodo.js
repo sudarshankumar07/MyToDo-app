@@ -107,6 +107,35 @@ function callAPI(url){
     .catch(err=>console.error(err))
 }
 
+const todoList = document.querySelector(".todo-list")
+todoList.addEventListener("click",async (e)=>{
+  const btn = e.target.closest(".task-del-btn");
+  if(!btn) return;
+    const taskId = e.target.dataset.taskId
+    try{
+      const res = await fetch("/delete-task",{
+        method: "POST",
+        headers : {"Content-Type":"application/json"},
+        body: JSON.stringify({task_id: taskId })
+
+      });
+      const data = await res.json();
+      if (data.success){
+        btn.closest(".todo-item").remove();
+      }
+      else{
+        alert("delete failed")
+        return;
+      }
+      
+    }
+    catch(err){
+      console.log(err)
+      alert("server error")
+    
+  }
+})
+
 todoList.addEventListener("click",async (e)=>{
   const btn = e.target.closest(".task-update-btn");
   if(!btn) return;
@@ -153,3 +182,4 @@ todoList.addEventListener("click",async (e)=>{
     
   }
 })
+
